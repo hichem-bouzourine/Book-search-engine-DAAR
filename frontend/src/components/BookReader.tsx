@@ -88,15 +88,30 @@ const BookReader: React.FC<BookReaderProps> = ({ book }) => {
                 {/* Book Container */}
                 <HTMLFlipBook
                     ref={flipBookRef}
-                    width={isMobile ? 300 : 600} // Dynamic width based on screen size
-                    height={isMobile ? 500 : 800} // Dynamic height based on screen size
-                    size="fixed" // Fixed size
-                    maxShadowOpacity={0.5} // Shadow intensity
-                    showCover={false} // Don't show a cover page
-                    flippingTime={500} // Animation duration in milliseconds
-                    mobileScrollSupport={false} // Disable mobile scroll to prevent conflicts
-                    onFlip={onFlip} // Handle page flip event
+                    width={isMobile ? 300 : 600}
+                    height={isMobile ? 500 : 800}
+                    size="fixed"
+                    minWidth={300}
+                    minHeight={500}
+                    maxWidth={600}
+                    maxHeight={800}
+                    maxShadowOpacity={0.5}
+                    showCover={false}
+                    flippingTime={500}
+                    mobileScrollSupport={false}
+                    onFlip={onFlip}
                     className="book rounded-lg"
+                    style={{}}
+                    startPage={0}
+                    drawShadow={true}
+                    usePortrait={true}
+                    startZIndex={0}
+                    autoSize={true}
+                    clickEventForward={false}
+                    useMouseEvents={true}
+                    swipeDistance={30}
+                    showPageCorners={false}
+                    disableFlipByClick={false}
                 >
                     {pages.map((page, index) => (
                         <div key={index} className="page">

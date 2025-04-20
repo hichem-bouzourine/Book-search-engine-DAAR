@@ -31,6 +31,10 @@ const BookDetails: React.FC<BookDetailsProps> = ({ book }) => {
                     <BookList
                         books={recommendations.filter(book => book !== null).slice(0, 3)}
                         onBookClick={(id) => (window.location.href = `/book/${id}`)}
+                        currentPage={1}
+                        setCurrentPage={() => { }}
+                        totalBooks={recommendations.length}
+
                     />
                 </div>
             }
