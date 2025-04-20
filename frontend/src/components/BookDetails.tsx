@@ -15,7 +15,7 @@ const BookDetails: React.FC<BookDetailsProps> = ({ book }) => {
         if (!book?.id) return; // Ensure book.id is available before making the request
 
         // Fetch recommendations
-        axios.get<Book[]>(`http://localhost:3000/api/books/recommendations/${book?.id}`)
+        axios.get<Book[]>(`${import.meta.env.VITE_API_URL}/api/books/recommendations/${book?.id}`)
             .then((response) => setRecommendations(response.data))
             .catch((error) => console.error("Error fetching books:", error));
     }, [book?.id]);

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useParams } from "react-router-dom";
 import axios from "axios";
-import BookList from "./components/BookList";
-import SearchBar from "./components/SearchBar";
 import { Book, SearchResult } from "./types";
 import BookDetails from "./components/BookDetails";
+import Main from "./components/Main";
 
 const Spinner: React.FC = () => (
   <div className="flex justify-center items-center mt-8">
@@ -24,7 +23,7 @@ const App: React.FC = () => {
     setLoading(true);
     axios
       .get<{ books: Book[]; totalBooks: number }>(
-        `http://localhost:3000/api/books/books?page=${currentPage}&limit=${booksPerPage}`
+        `${import.meta.env.VITE_API_URL}/api/books/books?page=${currentPage}&limit=${booksPerPage}`
       )
       .then((response) => {
         setBooks(response.data.books);
@@ -37,6 +36,8 @@ const App: React.FC = () => {
   const handleSearch = (results: SearchResult[]) => {
     setSearchResults(results);
     setTotalBooks(results.length);
+
+    setCurrentPage(1); // Reset to the first page when searching
   };
 
   return (
@@ -56,29 +57,17 @@ const App: React.FC = () => {
           <Route
             path="/"
             element={
-              <div className="min-w-full flex flex-col items-center justify-center">
-                {loading ? (
-                  <Spinner />
-                ) : (
-                  <>
-                    <div className="min-w-full bg-gray-800 flex flex-col items-center justify-center">
-                      <div className="w-[80%]">
-                        <SearchBar onSearch={handleSearch} />
-                      </div>
-                    </div>
-                    <div className="container mx-auto my-4 p-4">
-                      <BookList
-                        books={searchResults.length > 0 ? searchResults : books}
-                        onBookClick={(id) => (window.location.href = `/book/${id}`)}
-                        displaySort={true}
-                        currentPage={currentPage}
-                        setCurrentPage={setCurrentPage}
-                        totalBooks={totalBooks}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
+              <Main
+                loading={loading}
+                Spinner={Spinner}
+                handleSearch={handleSearch}
+                searchResults={searchResults}
+                books={books}
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+                totalBooks={totalBooks}
+                isSearchMode={searchResults.length > 0}
+              />
             }
           />
           <Route path="/book/:bookId" element={<BookDetailsWrapper />} />
@@ -96,7 +85,7 @@ const BookDetailsWrapper: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     axios
-      .get<Book>(`http://localhost:3000/api/books/book/${bookId}`)
+      .get<Book>(`${import.meta.env.VITE_API_URL}/api/books/book/${bookId}`)
       .then((response) => setBook(response.data))
       .catch((error) => console.error("Error fetching book details:", error))
       .finally(() => setLoading(false));

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Book, SearchResult } from "../types";
 import BookCard from "./BookCard";
 
@@ -9,7 +9,9 @@ interface BookListProps {
     currentPage: number;
     setCurrentPage: (page: number) => void;
     totalBooks: number;
+    isSearchMode?: boolean; // <-- Add this
 }
+
 
 const BookList: React.FC<BookListProps> = ({
     books,
@@ -18,14 +20,14 @@ const BookList: React.FC<BookListProps> = ({
     currentPage,
     setCurrentPage,
     totalBooks,
+    isSearchMode, // <-- Default to false
 }) => {
     const [selectedSort, setSelectedSort] = useState<string>("relevance");
     const [sortOrder, setSortOrder] = useState<string>("asc");
-    const booksPerPage = 9; // Set items per page
+    const booksPerPage = 9;
 
-    const sortBooks = (books: (Book | SearchResult)[]) => {
+    const sortedBooks = useMemo(() => {
         const validBooks = books.filter((book) => book && typeof book === "object");
-
         const order = sortOrder === "asc" ? 1 : -1;
 
         return [...validBooks].sort((a, b) => {
@@ -58,10 +60,29 @@ const BookList: React.FC<BookListProps> = ({
             }
             return 0;
         });
+    }, [books, selectedSort, sortOrder]);
+
+    const totalPages = useMemo(() => {
+        return Math.ceil(totalBooks / booksPerPage);
+    }, [totalBooks, sortedBooks]);
+
+
+    const paginatedBooks = useMemo(() => {
+        if (isSearchMode) {
+            const start = (currentPage - 1) * booksPerPage;
+            return sortedBooks.slice(start, start + booksPerPage); // Local pagination
+        }
+        return sortedBooks; // Server handles it
+    }, [sortedBooks, currentPage, isSearchMode]);
+
+
+    const handlePreviousPage = () => {
+        setCurrentPage(Math.max(1, currentPage - 1));
     };
 
-    const sortedBooks = sortBooks(books);
-    const totalPages = Math.ceil(totalBooks / booksPerPage);
+    const handleNextPage = () => {
+        setCurrentPage(Math.min(totalPages, currentPage + 1));
+    };
 
     return (
         <div className="container mx-auto my-3 p-6">
@@ -91,7 +112,7 @@ const BookList: React.FC<BookListProps> = ({
             )}
 
             <div className="min-w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sortedBooks.map((book) =>
+                {paginatedBooks.map((book) =>
                     "id" in book ? (
                         <BookCard key={book.id} book={book} onBookClick={onBookClick} />
                     ) : null
@@ -103,7 +124,7 @@ const BookList: React.FC<BookListProps> = ({
                     <div className="flex justify-center items-center gap-4 mt-8 bg-gray-800 max-w-fit rounded-md p-4 text-white">
                         <button
                             className="px-4 py-2 bg-gray-600 text-white rounded disabled:opacity-50 cursor-pointer"
-                            onClick={() => setCurrentPage(currentPage > 1 ? currentPage - 1 : 1)}
+                            onClick={handlePreviousPage}
                             disabled={currentPage === 1}
                         >
                             Previous
@@ -115,7 +136,7 @@ const BookList: React.FC<BookListProps> = ({
 
                         <button
                             className="px-4 py-2 bg-gray-600 text-white rounded disabled:opacity-50 cursor-pointer"
-                            onClick={() => setCurrentPage(currentPage < totalPages ? currentPage + 1 : totalPages)}
+                            onClick={handleNextPage}
                             disabled={currentPage === totalPages}
                         >
                             Next
