@@ -12,13 +12,22 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
     const [totalBooks, setTotalBooks] = useState(0);
 
     const handleSearch = async (query: string, searchType: "keyword" | "regex" | "kmp") => {
+        if (query.length <= 3) {
+            return;
+        }
+
+        // Debounce the search to avoid too many requests
+        if (query.length > 30) {
+            query = query.slice(0, 30); // Limit the length of the search pattern
+        }
+
         if (!query.trim()) {
             onSearch([]); // Clear results if input is empty
             return;
         }
 
         try {
-            const response = await axios.post<SearchResult[]>("http://localhost:3000/api/books/search-books", {
+            const response = await axios.post<SearchResult[]>(`${import.meta.env.VITE_API_URL}/api/books/search-books`, {
                 pattern: query,
                 type: searchType,
             });
